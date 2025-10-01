@@ -1,13 +1,47 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShoppingCart, ChefHat } from 'lucide-react';
 import GroceryList from './components/GroceryList';
 import RecipePanel from './components/RecipePanel';
 import { mockGroceryItems, mockRecipes } from './data/mockData';
-import { GroceryItem } from './types';
+import { GroceryItem, Recipe } from './types';
 
-function App() {
+const App = () => {
   const [activeTab, setActiveTab] = useState<'grocery' | 'recipes'>('grocery');
   const [groceryItems, setGroceryItems] = useState<GroceryItem[]>(mockGroceryItems);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // function to fetch recipes from backend 
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      if (groceryItems.length === 0) {
+        setRecipes([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch('/api/recommendations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ groceryList: groceryItems.map(item => item.name) }),
+        });
+
+          const data = await response.json();
+          setRecipes(data.recipes);
+        } catch (error) {
+          console.error('Error fetching recipes:', error);
+          setRecipes([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchRecipes();
+    }, [groceryItems]);
+      
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,12 +103,12 @@ function App() {
               <GroceryList items={groceryItems} onItemsChange={setGroceryItems} />
             </div>
             <div className="lg:sticky lg:top-8 lg:self-start">
-              <RecipePanel groceryItems={groceryItems} recipes={mockRecipes} />
+              <RecipePanel groceryItems={groceryItems} recipes={recipes} loading={loading} />
             </div>
           </div>
         ) : (
           <div className="max-w-2xl mx-auto">
-            <RecipePanel groceryItems={groceryItems} recipes={mockRecipes} />
+            <RecipePanel groceryItems={groceryItems} recipes={recipes} loading={loading}/>
           </div>
         )}
       </main>

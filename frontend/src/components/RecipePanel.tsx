@@ -1,10 +1,10 @@
-import React from 'react';
 import { Clock, ChefHat } from 'lucide-react';
 import { Recipe, GroceryItem } from '../types';
 
 interface RecipePanelProps {
   groceryItems: GroceryItem[];
   recipes: Recipe[];
+  loading: boolean;
 }
 
 export default function RecipePanel({ groceryItems, recipes }: RecipePanelProps) {
